@@ -177,6 +177,7 @@ void Application::displayOverlay(bool display) {
         ImGui::Separator();
 
     }
+    ImGui::End();
     //End outils de dessin
 
 
@@ -216,7 +217,8 @@ void Application::displayOverlay(bool display) {
 
         ImGui::Separator();
     }
-        //End Transformation Interactives
+    ImGui::End();
+    //End Transformation Interactives
     ImGui::Text("Camera parameters:");
 
     ImGui::Checkbox(" : Manipulate Object Trackball", &m_trackball);
@@ -227,7 +229,7 @@ void Application::displayOverlay(bool display) {
     ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-// Importation d'image
+    // Importation d'image
         if (ImGui::BeginMenu("File")) {
                     if (ImGui::MenuItem("Importer Image...")) {
             importImage();

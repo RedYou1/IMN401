@@ -105,6 +105,86 @@ bool EngineGL::init() {
     Texture2D *bunnyTexture = new Texture2D(bunnyTexturePath);
     material->setTexture(bunnyTexture);
 
+    // Sofa
+    Node *sofa = scene->getNode("Sofa");
+
+    std::string sofaPath = ObjPath + "sofa.obj";
+    if (!std::filesystem::exists(sofaPath)) {
+        throw std::runtime_error("Missing asset: " + sofaPath);
+    }
+
+    ModelGL *sofaModel = scene->m_Models.get<ModelGL>(sofaPath);
+    if (!sofaModel) {
+        throw std::runtime_error("Failed to load model: " + sofaPath);
+    }
+
+    sofa->setModel(sofaModel);
+
+    sofa->frame()->scale(glm::vec3(5.0f));      
+    sofa->frame()->translate(glm::vec3(3.0f, 0.0f, 0.0f)); 
+
+    BaseMaterial* sofaMat = new BaseMaterial("SofaMat");
+
+    std::string sofaDiffusePath = ObjPath + "Textures/brickL.png";
+
+    if (!std::filesystem::exists(sofaDiffusePath))
+        throw std::runtime_error("Missing: " + sofaDiffusePath);
+
+    Texture2D* sofaDiffuse = new Texture2D(sofaDiffusePath);
+
+    sofa->materialProperties.useBlinnPhong = m_rasterUseBlinnPhong;
+    sofa->materialProperties.useGouraud = m_rasterUseGouraud;
+
+    sofaMat->setTexture(sofaDiffuse);
+    
+
+    sofa->setMaterial(sofaMat);
+
+    sofa->materialProperties.albedo = glm::vec3(0.6f, 0.3f, 0.2f);
+    sofa->materialProperties.diffuse = 0.8f;
+    sofa->materialProperties.specular = 0.2f;
+    sofa->materialProperties.hardness = 16.0f;
+
+    scene->getSceneNode()->adopt(sofa);
+    // End Sofa
+
+    // Plante
+    Node* plante = scene->getNode("Plante");
+
+    std::string plantePath = ObjPath + "plante.obj";
+    if (!std::filesystem::exists(plantePath)) {
+        throw std::runtime_error("Missing asset: " + plantePath);
+    }
+
+    ModelGL* planteModel = scene->m_Models.get<ModelGL>(plantePath);
+    if (!planteModel) {
+        throw std::runtime_error("Failed to load model: " + plantePath);
+    }
+
+    std::string planteTexturePath = ObjPath + "Textures/plante.jpg";
+
+    if (!std::filesystem::exists(planteTexturePath))
+        throw std::runtime_error("Missing asset: " + planteTexturePath);
+
+    Texture2D* planteTexture = new Texture2D(planteTexturePath);
+
+    plante->setModel(planteModel);
+    scene->getSceneNode()->adopt(plante);
+
+    BaseMaterial* planteMat = new BaseMaterial("PlanteMat");
+
+    plante->setMaterial(planteMat);
+    planteMat->setTexture(planteTexture);
+
+    plante->materialProperties.albedo = glm::vec3(0.1f, 0.8f, 0.2f);
+    plante->materialProperties.diffuse = 0.9f;
+    plante->materialProperties.specular = 0.1f;
+    plante->materialProperties.hardness = 8.0f;
+
+    plante->frame()->scale(glm::vec3(1.0f));
+    plante->frame()->translate(glm::vec3(-5.0f, 0.0f, 0.0f));
+    // Edn Plante
+
     bunny->setMaterial(material);
     scene->getSceneNode()->adopt(bunny);
     bunny->materialProperties.albedo = glm::vec3(0.2f, 0.35f, 1.0f);
@@ -120,18 +200,6 @@ bool EngineGL::init() {
     const glm::vec3 cameraRight = glm::normalize(glm::vec3(cameraFrame[0]));
     const glm::vec3 cameraUp = glm::normalize(glm::vec3(cameraFrame[1]));
     const glm::vec3 cameraForward = glm::normalize(-glm::vec3(cameraFrame[2]));
-
-    // Sphere behind the bunny, placed upper-right in the camera view.
-    Node *backSphere = scene->getNode("BackSphere");
-    backSphere->frame()->scale(glm::vec3(0.2f));
-    backSphere->setSphere(new Sphere(8.0f));
-    glm::vec3 sphereWorldPos = glm::vec3(bunnyWorldPos.x+15.0f, bunnyWorldPos.y + 15.0f, bunnyWorldPos.z -15.0f);
-    backSphere->frame()->translate(sphereWorldPos);
-    backSphere->materialProperties.albedo = glm::vec3(0.95f, 0.65f, 0.2f);
-    backSphere->materialProperties.diffuse = 0.75f;
-    backSphere->materialProperties.specular = 0.25f;
-    backSphere->materialProperties.hardness = 20.0f;
-    scene->getSceneNode()->adopt(backSphere);
 
     // Ground plane under the bunny.
     Node *groundPlane = scene->getNode("GroundPlane");
@@ -167,15 +235,6 @@ bool EngineGL::init() {
     lightProj->couleurSpeculaire = glm::vec3(1.0f, 0.0f, 0.0f);
     scene->lights.insert("LightProj", lightProj);
 
-    Light *sphereDirectionalLight = new Light();
-    sphereDirectionalLight->type = Light::DIRECTIONNELLE;
-    sphereDirectionalLight->direction = glm::normalize(bunnyWorldPos - sphereWorldPos);
-    sphereDirectionalLight->puissance = 0.25f;
-    sphereDirectionalLight->couleurAmbiante = glm::vec3(0.03f, 0.03f, 0.03f);
-    sphereDirectionalLight->couleurDiffuse = backSphere->materialProperties.albedo;
-    sphereDirectionalLight->couleurSpeculaire = glm::vec3(0.0f, 0.92f, 0.5f);
-    scene->lights.insert("LightFromSphere", sphereDirectionalLight);
-
     setupEngine();
     setupRaytracer();
     return (true);
@@ -201,77 +260,6 @@ float genererLesEchantillonsSSAA(int samples, std::vector<std::tuple<float, floa
     //La fonction va retourner le facteur de normalisation à appliquer à la couleur (1 / nombre d'échantillons).
     return 1.0f / static_cast<float>(offsets.size());
 }
-
-// void EngineGL::render() {
-//     glEnable(GL_DEPTH_TEST);
-//     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//     if (m_renderScene == RenderScene::Raytracer) {
-//         setBunnyAnimationPose(scene, 0.5f);
-
-//         int width = myFBO->getWidth();
-//         int height = myFBO->getHeight();
-//         glm::mat4 cameraFrame = scene->camera()->frame()->getMatrixCopy();
-//         glm::mat4 viewMatrix = scene->camera()->getViewMatrix();
-//         glm::mat4 projectionMatrix = scene->camera()->getProjectionMatrix();
-//         glm::mat4 inverseViewProjection = glm::inverse(projectionMatrix * viewMatrix);
-//         float fov = scene->camera()->getFoV();
-//         float aspect = scene->camera()->getAspectRatio();
-//         GLfloat clearColorBuffer[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-//         glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColorBuffer);
-//         const glm::vec4 clearColor(clearColorBuffer[0], clearColorBuffer[1], clearColorBuffer[2], clearColorBuffer[3]);
-
-//         if (!m_lastRaytracerParamsValid ||
-//             hasCameraChanged(cameraFrame, m_lastRaytracerCameraFrame) ||
-//             std::fabs(fov - m_lastRaytracerFoV) > 0.0001f ||
-//             std::fabs(aspect - m_lastRaytracerAspect) > 0.0001f) {
-//             m_raytracerDirty = true;
-//         }
-
-//         launchRaytracerIfNeeded(cameraFrame, inverseViewProjection, fov, aspect, width, height, clearColor);
-//         pollRaytracerResult();
-
-//         const size_t expectedImageSize = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-//         if (m_raytracerHasImage && m_raytracerImage.size() == expectedImageSize) {
-//             glTextureSubImage2D(
-//                 myFBO->getColorTexture()->getId(),
-//                 0,
-//                 0,
-//                 0,
-//                 width,
-//                 height,
-//                 GL_RGBA,
-//                 GL_UNSIGNED_BYTE,
-//                 m_raytracerImage.data());
-//         } else if (m_raytracerHasImage) {
-//             m_raytracerHasImage = false;
-//             m_raytracerDirty = true;
-//         } else {
-//             const GLfloat clearData[4] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
-//             glClearTexImage(myFBO->getColorTexture()->getId(), 0, GL_RGBA, GL_FLOAT, clearData);
-//         }
-
-//         display->apply(myFBO, nullptr);
-//     } else {
-//         for (unsigned int i = 0; i < allNodes->nodes.size(); i++) {
-//             Node *node = allNodes->nodes[i];
-//             MaterialGL *material = node->getMaterial();
-//             if (material != nullptr && material->fp != nullptr) {
-//                 Light::uniformLight(scene->lights, material->fp, material->vp);
-//             }
-//             node->render();
-//         }
-//         //Primitive Vectoriel
-    
-//             // Render all Vector Primitives (they bypass the material system)
-//             for (unsigned int i = 0; i < allNodes->nodes.size(); i++) {
-//                 VectorPrimitive* prim = dynamic_cast<VectorPrimitive*>(allNodes->nodes[i]);
-//                 if (prim) {
-//                     prim->render();
-//                 }
-//             }
-//             //End Primitive Vectoriel
-//     }
-// }
 
 void EngineGL::render()
 {
