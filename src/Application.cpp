@@ -210,8 +210,11 @@ void Application::displayOverlay(bool display) {
         ImGui::Text("Objet sélectionné : %s \n", 
         selected ? selected->getName().c_str() : "Aucun\n");
 
-        ImGui::SameLine();
+        ImGui::Separator();
+        
+        ImGui::SliderFloat(": Metalic", &selected->materialProperties.shininess, 0.f, 10.f, "%.3f", 2.f);
 
+        ImGui::Separator();
     }
         //End Transformation Interactives
     ImGui::Text("Camera parameters:");

@@ -24,6 +24,7 @@ protected:
     GLuint l_TextureSampler;
     GLuint l_CameraPosition;
     GLuint l_Shininess;
+    GLuint l_Metalness;
     GLuint l_UseBlinnPhong;
     GLuint l_UseGouraud;
     Texture2D *m_Texture;

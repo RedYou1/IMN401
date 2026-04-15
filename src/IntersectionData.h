@@ -44,7 +44,7 @@ struct NodeMaterialProperties {
 	float diffuse = 0.5f;
 	float specular = 64.0f;
 	float hardness = 32.0f;
-	float shininess = 0.5f;
+	float shininess = 1.0f;
 	bool useBlinnPhong = false;
 	bool useGouraud = false;
 };

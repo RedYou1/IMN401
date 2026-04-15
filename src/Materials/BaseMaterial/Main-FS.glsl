@@ -10,6 +10,7 @@ uniform bool useGouraud;
 uniform sampler2D textureSampler;
 uniform vec3 cameraPosition;
 uniform float shininess;
+uniform float metalness;
 uniform bool useBlinnPhong;
 
 struct Light
@@ -64,6 +65,11 @@ float calculerAngleProjecteurIncident(vec3 surfaceVersLumiere, Light light) {
     return acos(theta);
 }
 
+vec3 calculerF0(vec3 albedo) {
+    // Diélectrique : F0 = 0.04, Métal : F0 = couleur de l'albedo
+    return mix(vec3(0.04), albedo, metalness);
+}
+
 void main() {
     // If Gouraud mode is enabled, use the pre-calculated color from vertex shaders
     if (useGouraud) {
@@ -80,7 +86,7 @@ void main() {
 	{
         vec3 couleurAmbiante = lightArray[i].couleurAmbiante * couleurTexture.xyz;
         vec3 surfaceVersLumiere = normalize(lightArray[i].position - positionMonde);
-        vec3 surfaceVersCamera = normalize(cameraPosition - positionMonde);    
+        vec3 surfaceVersCamera = normalize(cameraPosition - positionMonde);
 
         float intensiteSpeculaire = 0.0;
         if(useBlinnPhong){
@@ -88,7 +94,7 @@ void main() {
         }else{ //Phong
             intensiteSpeculaire = calculerPhong(surfaceVersLumiere, surfaceVersCamera, normaleNormalise);
         }
-        vec3 couleurSpeculaire = vec3(intensiteSpeculaire * lightArray[i].couleurSpeculaire);
+        vec3 couleurSpeculaire = calculerF0(couleurTexture.xyz) * intensiteSpeculaire * lightArray[i].couleurSpeculaire;
 
         if(lightArray[i].type==0) //lumiere directionnelle
         {
@@ -102,7 +108,7 @@ void main() {
             Color += couleurTexture * vec4(finalColor, 1.0);
         }
         else //lumiere point ou projecteur
-        {  
+        {
             float distanceDeLumiere = length(lightArray[i].position-positionMonde);
             float attenuationQuadratique = calculerAttenuationQuadratique(lightArray[i], distanceDeLumiere);
 

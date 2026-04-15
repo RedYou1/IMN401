@@ -17,6 +17,7 @@ BaseMaterial::BaseMaterial(std::string name) : MaterialGL(name) {
     l_TextureSampler = glGetUniformLocation(fp->getId(), "textureSampler");
     l_CameraPosition = glGetUniformLocation(fp->getId(), "cameraPosition");
     l_Shininess = glGetUniformLocation(fp->getId(), "shininess");
+    l_Metalness = glGetUniformLocation(fp->getId(), "metalness");
     l_UseBlinnPhong = glGetUniformLocation(fp->getId(), "useBlinnPhong");
     l_UseGouraud = glGetUniformLocation(fp->getId(), "useGouraud");
     
@@ -78,6 +79,7 @@ void BaseMaterial::animate(Node *o, const float elapsedTime) {
     glProgramUniform3fv(fp->getId(), l_CameraPosition, 1, glm::value_ptr(camPos));
 
     glProgramUniform1f(fp->getId(), l_Shininess, o->materialProperties.hardness);
+    glProgramUniform1f(fp->getId(), l_Metalness, o->materialProperties.shininess);
     glProgramUniform1i(fp->getId(), l_UseBlinnPhong, o->materialProperties.useBlinnPhong ? 1 : 0);
     glProgramUniform1i(fp->getId(), l_UseGouraud, o->materialProperties.useGouraud ? 1 : 0);
     
