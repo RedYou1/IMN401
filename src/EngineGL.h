@@ -69,7 +69,6 @@ protected:
 
     NodeCollector *allNodes;
 
-    // For TP 4
     FrameBufferObject *myFBO;
     Display *display;
 

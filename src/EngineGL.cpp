@@ -249,7 +249,7 @@ float genererLesEchantillonsSSAA(int samples, std::vector<std::tuple<float, floa
 
     for (int y = 0; y < gridSize && static_cast<int>(offsets.size()) < samples; ++y) {
         for (int x = 0; x < gridSize && static_cast<int>(offsets.size()) < samples; ++x) {
-             //Done : Implémenter le SSAA dans le lanceur de rayons. Remplir le vecteur offsets avec les offsets de chaque échantillon. 
+             
             float offsetX = (x + 0.5f) / gridSize;
             float offsetY = (y + 0.5f) / gridSize;
 
@@ -339,13 +339,13 @@ void EngineGL::render()
 std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& imageBuffer, int width, int height, int kernelSize) {
     std::vector<unsigned char> outputBuffer = imageBuffer;
 
-    //Done: implémenter un flou de post-traitement simple (moyenne des pixels) sur l'image du lanceur de rayons avant de l'afficher. Vous pouvez ajuster la taille du kernel pour un flou plus ou moins fort.
+    
     int half = kernelSize / 2;
 
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            // Done: mettre la bordure noire pour éviter les problèmes de bord lors du flou
+            
             if (x < half || x >= width - half || y < half || y >= height - half) {
                 int idx = 4 * (y * width + x);
                 outputBuffer[idx + 0] = 0;
@@ -357,7 +357,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
             glm::vec3 sum(0.0f);
             int count = 0;
     
-            //Done: calculer la moyenne des couleurs des pixels dans le voisinage défini par le kernel et assigner la couleur moyenne au pixel (x, y) dans outputBuffer
+            
             for (int ky = -half; ky <= half; ++ky) {
                 for (int kx = -half; kx <= half; ++kx) {
 
@@ -374,7 +374,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
 
             sum /= (float)count;
 
-            //Done: mettre la couleur moyenne calculée dans outputBuffer pour le pixel (x, y)
+            
             int idx = 4 * (y * width + x);
             outputBuffer[idx + 0] = (unsigned char)sum.r;
             outputBuffer[idx + 1] = (unsigned char)sum.g;
@@ -386,8 +386,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
 }
 
 void calculerVecteurLumiere(const Light* light, const glm::vec3& intersectionPoint, glm::vec3& lightVec) {
-    //Done: calculer le vecteur de lumière (lightVec) à partir de la position de l'intersection et de la position/direction de la lumière. Normaliser le vecteur résultant.
-    // Le résultat devrait être différent pour la lumière directionnelle et la lumière ponctuelle.
+    
     if (light->type == Light::DIRECTIONNELLE) {
         lightVec = glm::normalize(-light->direction);
     }
@@ -398,9 +397,7 @@ void calculerVecteurLumiere(const Light* light, const glm::vec3& intersectionPoi
 }
 
 void EngineGL::phaseLargeRayonIntersections(const Ray& ray, IntersectionData& intersection) const {
-    //Done: intersecter le rayon avec tous les objets de la scène et remplir intersection avec les données d'intersection. Vous devriez appeler la fonction intersect de chaque objet de la scène, qui devrait mettre à jour intersection si une intersection plus proche est trouvée.
-    // Ne pas oublier de réinitialiser intersection avant de commencer les tests d'intersection pour éviter les données d'intersection précédentes d'affecter les résultats actuels.
-    // Cette section pourrait contenir une hiérarchie d'accélération pour optimiser les intersections, mais pour le TP2, il est acceptable de tester l'intersection avec tous les objets de la scène de manière brute-force.
+    
     intersection.t = FLT_MAX;
 
     for (auto node : allNodes->nodes) {
@@ -425,7 +422,7 @@ void calculerEchantillonsGrilleRayons(std::tuple<float, float> offset, float &ND
     float offsetY = std::get<1>(offset);
 
     if (vibration) {
-        //Done : implémenter la vibration pour les échantillons du SSAA. Vous pouvez utiliser std::rand() pour générer des nombres aléatoires, puis les utiliser pour décaler légèrement les coordonnées NDC de chaque échantillon.
+        
         offsetX += ((float)rand() / RAND_MAX - 0.5f) * 0.5f;
         offsetY += ((float)rand() / RAND_MAX - 0.5f) * 0.5f;
     }
@@ -436,15 +433,12 @@ void calculerEchantillonsGrilleRayons(std::tuple<float, float> offset, float &ND
 }
 
 glm::vec3 calculerDeplacementDeCollision(const IntersectionData &intersection, const Ray &ray) {
-    // Done calculer un point de départ pour les rayons d'ombre qui est légèrement décalé de la position d'intersection dans la direction de la normale de l'intersection pour éviter les problèmes de précision numérique qui pourraient faire que les rayons d'ombre intersectent à nouveau la surface à partir de laquelle ils sont lancés. 
-    // Vous pouvez utiliser une constante comme SHADOW_EPSILON pour définir la distance de ce décalage.
-    // Note: c'est une ligne de code.
+    
     return intersection.p + SHADOW_EPSILON * intersection.n;
 }
 
 glm::vec3 EngineGL::calculerBlinnPhongLancerRayons(const Light *light, const IntersectionData &intersection, const glm::vec3 &lightVec, const glm::vec3 &eyeVec) const {
-    // Done : implémenter le modèle d'éclairage de Blinn-Phong pour calculer les contributions diffuse et spéculaire de la lumière à l'intersection. 
-    // Vous devez utiliser les propriétés de la lumière (puissance, couleur diffuse, couleur spéculaire) ainsi que les propriétés du matériau à l'intersection (albedo, diffuse, specular, hardness) pour calculer la contribution de la lumière à la couleur finale.
+    
     glm::vec3 h = glm::normalize(lightVec + eyeVec);
 
     float diff = glm::max(glm::dot(intersection.n, lightVec), 0.0f);
@@ -466,11 +460,7 @@ glm::vec3 EngineGL::calculerIlluminationLancerRayons(const IntersectionData &int
     shadowRay.origin = calculerDeplacementDeCollision(intersection, shadowRay);
 
     for (int k = 0; k < scene->lights.size(); k++) {
-        //Done: implémenter la boucle d'éclairage pour calculer l'éclairage à partir de chaque lumière de la scène. Pour chaque lumière, vous devez calculer le vecteur de lumière (lightVec) et lancer un rayon d'ombre dans cette direction pour vérifier si la lumière est bloquée par un autre objet. 
-        // Si la lumière n'est pas bloquée, vous pouvez calculer les contributions diffuse et spéculaire de la lumière à l'aide du modèle de Blinn-Phong et les ajouter à samplecolour.
-        // Utiliser la fonction calculerVecteurLumiere pour obtenir le vecteur de lumière à partir de la position de l'intersection et des propriétés de la lumière.
-        // Utiliser la fonction phaseLargeRayonIntersections.
-        // Utiliser calculerBlinnPhongLancerRayons pour calculer les contributions diffuse et spéculaire de la lumière si elle n'est pas bloquée.
+      
         Light* light = scene->lights.get(k);
 
         calculerVecteurLumiere(light, intersection.p, lightVec);
@@ -498,9 +488,6 @@ void EngineGL::calculerOrientationRayon(
     const glm::vec3 &cameraPos,
     Ray &ray,
     glm::vec3 &eyeVec) const {
-    // Done: calculer l'orientation du rayon de vue à partir des coordonnées de clip (clipX, clipY) et de la matrice inverse de la projection * vue. 
-    // N'oubliez pas de normaliser la direction du rayon et de calculer le vecteur eyeVec qui pointe de l'intersection vers la caméra.
-    // Vous devez aussi remplir ray.origin.
     glm::vec4 clip = glm::vec4(clipX, clipY, -1.0f, 1.0f);
     glm::vec4 world = inverseViewProjection * clip;
     world /= world.w;
@@ -523,7 +510,6 @@ std::vector<unsigned char> EngineGL::renderRaytracerImage(const glm::mat4 &camer
     m_raytracerRowsTotal.store(width, std::memory_order_relaxed);
     m_raytracerRowsDone.store(0, std::memory_order_relaxed);
 
-    // 1. Create a vector of column indices [0, 1, 2, ..., width-1]
     std::vector<int> columns(width);
     std::iota(columns.begin(), columns.end(), 0);
 
@@ -566,8 +552,6 @@ std::vector<unsigned char> EngineGL::renderRaytracerImage(const glm::mat4 &camer
             
             int pixelIndex = 4 * (j * width + i);
 
-            // Done: assigner la couleur calculée au pixel (i, j) dans imageBuffer. N'oubliez pas de convertir la couleur de [0, 1] à [0, 255] et d'assigner une valeur de 255 pour le canal alpha.
-            // Utiliser pixelIndex pour calculer l'index correct dans le tableau 1D pour les différents canaux.
             imageBuffer[pixelIndex + 0] = (unsigned char)(colour.r * 255.0f);
             imageBuffer[pixelIndex + 1] = (unsigned char)(colour.g * 255.0f);
             imageBuffer[pixelIndex + 2] = (unsigned char)(colour.b * 255.0f);

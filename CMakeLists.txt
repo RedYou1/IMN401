@@ -113,9 +113,7 @@ file(GLOB_RECURSE SOURCE_FILES
     ${SOURCE_DIR}/*.hpp
 )
 
-add_executable(${PROJECT_NAME}
-    ${SOURCE_FILES}
-)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${SOURCE_DIR}
@@ -123,6 +121,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${GLFW_INCLUDE_DIR}
     ${LIBS_DIR}/Logger
     ${LIBS_DIR}/imgui
+    ${LIBS_DIR}/glm
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -179,6 +178,7 @@ add_executable(Infographie1_tests
     src/Sphere.cpp
     src/Ray.cpp
     src/VectorPrimitive.cpp
+    src/Primitive3DManager.cpp
 )
 
 target_include_directories(Infographie1_tests PRIVATE
@@ -188,6 +188,7 @@ target_include_directories(Infographie1_tests PRIVATE
     ${LIBS_DIR}
     ${LIBS_DIR}/Logger
     ${LIBS_DIR}/imgui
+    ${LIBS_DIR}/glm
 )
 
 target_link_libraries(Infographie1_tests PRIVATE
@@ -201,11 +202,7 @@ target_link_libraries(Infographie1_tests PRIVATE
 )
 
 if(UNIX AND NOT APPLE)
-    if(INF1_TESTS_USE_EGL)
-        target_compile_definitions(Infographie1_tests PRIVATE INF1_TESTS_USE_EGL=1)
-    else()
-        target_link_libraries(Infographie1_tests PRIVATE pthread dl X11)
-    endif()
+    target_link_libraries(Infographie1_tests PRIVATE pthread dl X11)
 endif()
 
 if(MSVC)
