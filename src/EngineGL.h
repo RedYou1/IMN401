@@ -20,6 +20,7 @@
 #include "Light.h"
 #include "Ray.h"
 #include "IntersectionData.h"
+#include <Primitive3DManager.h>
 
 class EngineGL {
 public:
@@ -114,6 +115,7 @@ private:
     bool m_raytracerTaskRunning;
     bool m_raytracerDirty;
     bool m_raytracerHasImage;
+    Primitive3DManager primitive3DManager;
     std::vector<unsigned char> m_raytracerImage;
 
     glm::mat4 m_lastRaytracerCameraFrame;

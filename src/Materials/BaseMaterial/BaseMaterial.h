@@ -1,5 +1,3 @@
-
-
 #ifndef _BaseMaterial_
 #define _BaseMaterial_
 
@@ -12,23 +10,29 @@ public:
 
     ~BaseMaterial();
 
-    virtual void render(Node *o);
+    virtual void render(Node* o);
+    virtual void animate(Node* o, const float elapsedTime);
 
-    virtual void animate(Node *o, const float elapsedTime);
+    void setTexture(Texture2D* texture);
+    void enableTexture(bool enable);
+    bool isTextureEnabled() const;
 
-    void setTexture(Texture2D *texture);
+    virtual void displayInterface() {};
 
-    virtual void displayInterface(){};
 protected:
-    GLuint l_View, l_Proj, l_Model; // location of uniforms
+    GLuint l_View, l_Proj, l_Model;
     GLuint l_TextureSampler;
     GLuint l_CameraPosition;
     GLuint l_Shininess;
     GLuint l_Metalness;
     GLuint l_UseBlinnPhong;
     GLuint l_UseGouraud;
-    Texture2D *m_Texture;
-    
+    GLuint l_Albedo;
+    GLuint l_UseTexture;
+
+    Texture2D* m_Texture;
+    bool m_UseTexture = true;
+
     GLint vpCamPosLoc;
     GLint vpShininessLoc;
     GLint vpUseBlinnPhongLoc;

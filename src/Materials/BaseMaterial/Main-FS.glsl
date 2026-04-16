@@ -12,6 +12,8 @@ uniform vec3 cameraPosition;
 uniform float shininess;
 uniform float metalness;
 uniform bool useBlinnPhong;
+uniform vec3 albedo;
+uniform bool hasTexture;
 
 struct Light
 {
@@ -71,60 +73,68 @@ vec3 calculerF0(vec3 albedo) {
 }
 
 void main() {
-    // If Gouraud mode is enabled, use the pre-calculated color from vertex shaders
     if (useGouraud) {
         Color = vec4(gouraudColor, 1.0);
         return;
     }
-    vec4 couleurTexture = texture(textureSampler, textureCoords);
+
     const vec3 gamma = vec3(1.0/2.2);
     vec3 normaleNormalise = normalize(normale);
 
-    Color = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 baseColor;
+    if (hasTexture)
+        baseColor = texture(textureSampler, textureCoords).rgb;
+    else
+        baseColor = albedo;
+
+    vec4 result = vec4(0.0);
 
     for(int i = 0; i < lightArraySize; ++i)
-	{
-        vec3 couleurAmbiante = lightArray[i].couleurAmbiante * couleurTexture.xyz;
+    {
+        vec3 couleurAmbiante = lightArray[i].couleurAmbiante * baseColor;
+
         vec3 surfaceVersLumiere = normalize(lightArray[i].position - positionMonde);
         vec3 surfaceVersCamera = normalize(cameraPosition - positionMonde);
 
         float intensiteSpeculaire = 0.0;
         if(useBlinnPhong){
             intensiteSpeculaire = calculerBlinnPhong(surfaceVersLumiere, surfaceVersCamera, normaleNormalise);
-        }else{ //Phong
+        }else{
             intensiteSpeculaire = calculerPhong(surfaceVersLumiere, surfaceVersCamera, normaleNormalise);
         }
-        vec3 couleurSpeculaire = calculerF0(couleurTexture.xyz) * intensiteSpeculaire * lightArray[i].couleurSpeculaire;
 
-        if(lightArray[i].type==0) //lumiere directionnelle
+        vec3 couleurSpeculaire = calculerF0(baseColor) * intensiteSpeculaire * lightArray[i].couleurSpeculaire;
+
+        vec3 couleurDiffuse = calculerLambert(normaleNormalise, surfaceVersLumiere, lightArray[i]);
+
+        if(lightArray[i].type == 0)
         {
-            //Done: implementer la lumiere directionnelle en utilisant la fonction calculer Lambert et les bons parametres
-            vec3 couleurDiffuse = calculerLambert(normaleNormalise,
-                lightArray[i].type == 0 ? -lightArray[i].direction : surfaceVersLumiere,
-                lightArray[i]);
+            vec3 finalColor =
+                couleurAmbiante +
+                (couleurDiffuse * baseColor) +
+                couleurSpeculaire;
 
-            //Nous fournissions la combinaisons des couleurs
-            vec3 finalColor = couleurAmbiante + (couleurDiffuse * couleurTexture.xyz) + couleurSpeculaire;
-            Color += couleurTexture * vec4(finalColor, 1.0);
+            result += vec4(finalColor, 1.0);
         }
-        else //lumiere point ou projecteur
+        else
         {
-            float distanceDeLumiere = length(lightArray[i].position-positionMonde);
+            float distanceDeLumiere = length(lightArray[i].position - positionMonde);
             float attenuationQuadratique = calculerAttenuationQuadratique(lightArray[i], distanceDeLumiere);
 
             float coneFactor = 1.0;
-            if(lightArray[i].type==2) {
+            if(lightArray[i].type == 2) {
                 float angleLumiereSurface = calculerAngleProjecteurIncident(surfaceVersLumiere, lightArray[i]);
                 coneFactor = (angleLumiereSurface < lightArray[i].angleCone/2.0) ? 1.0 : 0.0;
             }
 
-            //Done: implementer la lumiere directionnelle en utilisant la fonction calculer Lambert et les bons parametres
-            vec3 couleurDiffuse = calculerLambert(normaleNormalise, surfaceVersLumiere, lightArray[i]);
-            
-            //Nous fournissions la combinaisons des couleurs
-            vec3 couleurLineaire = couleurAmbiante + coneFactor * attenuationQuadratique*(couleurDiffuse * couleurTexture.xyz + couleurSpeculaire);
-            Color.xyz += couleurLineaire;
+            vec3 couleurLineaire =
+                couleurAmbiante +
+                coneFactor * attenuationQuadratique *
+                (couleurDiffuse * baseColor + couleurSpeculaire);
+
+            result.xyz += couleurLineaire;
         }
     }
-    Color.xyz = pow(Color.xyz, gamma);
+
+    Color = vec4(pow(result.xyz, gamma), 1.0);
 }

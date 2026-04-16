@@ -2,10 +2,16 @@
 
 #include <glm/glm.hpp>
 #include "Node.h"
+#include <functional>
 
 class Primitive3DManager {
 public:
     void displayInterface();
+
+    void Primitive3DManager::setOnCreateNode(std::function<void()> fn)
+    {
+        m_onCreateNode = fn;
+    }
 
 private:
     enum class PrimitiveType {
@@ -20,4 +26,7 @@ private:
 
 private:
     Node* createPrimitiveNode();
+    int primcount = 1;
+
+    std::function<void()> m_onCreateNode;
 };

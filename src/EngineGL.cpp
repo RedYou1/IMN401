@@ -134,13 +134,12 @@ bool EngineGL::init() {
 
     sofa->materialProperties.useBlinnPhong = m_rasterUseBlinnPhong;
     sofa->materialProperties.useGouraud = m_rasterUseGouraud;
-
-    sofaMat->setTexture(sofaDiffuse);
     
+    sofaMat->enableTexture(false);
 
     sofa->setMaterial(sofaMat);
 
-    sofa->materialProperties.albedo = glm::vec3(0.6f, 0.3f, 0.2f);
+    sofa->materialProperties.albedo = glm::vec3(1.0f, 0.99f, 0.01f);
     sofa->materialProperties.diffuse = 0.8f;
     sofa->materialProperties.specular = 0.2f;
     sofa->materialProperties.hardness = 16.0f;
@@ -668,6 +667,18 @@ void EngineGL::displayInterface() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Projection")) {
+            bool ortho = scene->camera()->GetTypeProjection() == Camera::ORTHOGRAPHIC;
+            
+            if (ImGui::MenuItem("Perspective", "p", !ortho)) {
+                scene->camera()->setProjectionMode(Camera::PERSPECTIVE);
+            }
+            if (ImGui::MenuItem("Orthographique", "o", ortho)) {
+                scene->camera()->setProjectionMode(Camera::ORTHOGRAPHIC);
+            }
+            ImGui::EndMenu();
+        }
+
         if (myFBO) {
             if (ImGui::BeginMenu("FBOs")) {
                 ImGui::MenuItem(myFBO->getName().c_str(), NULL, &(myFBO->show_interface));
@@ -709,6 +720,8 @@ void EngineGL::displayInterface() {
             }
             ImGui::Text("Current model: %s %s", m_rasterUseBlinnPhong ? "Blinn-Phong" : "Phong", m_rasterUseGouraud ? "(Gouraud)" : "");
         }
+
+        primitive3DManager.displayInterface();
         ImGui::End();
     }
 
@@ -905,6 +918,8 @@ EngineGL::EngineGL(int width, int height) {
     m_rasterUseGouraud = false;
     m_raytracerRowsDone.store(0, std::memory_order_relaxed);
     m_raytracerRowsTotal.store(0, std::memory_order_relaxed);
+    primitive3DManager = Primitive3DManager();
+    primitive3DManager.setOnCreateNode([this]() {refreshNodeCollector();}); // On passe la fonction pour refresh le node collect
 
     scene = Scene::getInstance();
     scene->resizeViewport(m_Width, m_Height);
