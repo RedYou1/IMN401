@@ -20,6 +20,8 @@ BaseMaterial::BaseMaterial(std::string name) : MaterialGL(name) {
     l_Metalness = glGetUniformLocation(fp->getId(), "metalness");
     l_UseBlinnPhong = glGetUniformLocation(fp->getId(), "useBlinnPhong");
     l_UseGouraud = glGetUniformLocation(fp->getId(), "useGouraud");
+    l_Albedo = glGetUniformLocation(fp->getId(), "albedo");
+    l_UseTexture = glGetUniformLocation(fp->getId(), "hasTexture");
     
     vpCamPosLoc = glGetUniformLocation(vp->getId(), "cameraPosition");
     vpShininessLoc = glGetUniformLocation(vp->getId(), "shininess");
@@ -31,21 +33,23 @@ BaseMaterial::BaseMaterial(std::string name) : MaterialGL(name) {
 
 BaseMaterial::~BaseMaterial() {}
 
-void BaseMaterial::render(Node *o) {
-
+void BaseMaterial::render(Node* o)
+{
     m_ProgramPipeline->bind();
+    glProgramUniform1i(fp->getId(), l_UseTexture, m_UseTexture ? 1 : 0);
+    glProgramUniform3fv(fp->getId(), l_Albedo, 1,
+        glm::value_ptr(o->materialProperties.albedo));
 
-    if (m_Texture != nullptr) {
+    if (m_UseTexture && m_Texture != nullptr)
+    {
         glBindTextureUnit(0, m_Texture->getId());
         glProgramUniform1i(fp->getId(), l_TextureSampler, 0);
-        glProgramUniform1i(vp->getId(), vpTextureSampler, 0);
     }
 
     o->drawGeometry(GL_TRIANGLES);
 
-    if (m_Texture != nullptr) {
+    if (m_UseTexture && m_Texture != nullptr)
         glBindTextureUnit(0, 0);
-    }
 
     m_ProgramPipeline->release();
 }
@@ -56,12 +60,6 @@ void BaseMaterial::setTexture(Texture2D *texture) {
 
 void BaseMaterial::animate(Node *o, const float elapsedTime) {
 
-    /**********************************************
-    TP 2 - A completer
-    Calculer et Transmettre les matrices Model View et Proj au shaders
-    - Utilisez glm::value_ptr(mat) pour trouver le pointeur de la matrice mat a transmettre au GPU via la fonction glProgramUniform*()
-    - Une matrice 4X4 se transmet grace a glProgramUniformMatrix4fv
-    ***********************************************/
     (void)elapsedTime;
 
     Scene *scene = Scene::getInstance();
@@ -88,4 +86,14 @@ void BaseMaterial::animate(Node *o, const float elapsedTime) {
     glProgramUniform1f(vp->getId(), vpShininessLoc, o->materialProperties.hardness);
     glProgramUniform1i(vp->getId(), vpUseBlinnPhongLoc, o->materialProperties.useBlinnPhong ? 1 : 0);
     glProgramUniform1i(vp->getId(), vpUseGouraudLoc, o->materialProperties.useGouraud ? 1 : 0);
+}
+
+void BaseMaterial::enableTexture(bool enable)
+{
+    m_UseTexture = enable;
+}
+
+bool BaseMaterial::isTextureEnabled() const
+{
+    return m_UseTexture;
 }

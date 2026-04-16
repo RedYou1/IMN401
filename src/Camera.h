@@ -1,26 +1,22 @@
-
 #ifndef __CAMERA__
 #define __CAMERA__
 
 #include "Frame.h"
 #include <string>
 
-struct CameraMatrices {
-    glm::mat4 Proj;
-    glm::mat4 View;
-    glm::mat4 ViewProj;
-    glm::mat4 ViewProjInv;
-    glm::mat4 ViewProjNormal;
-};
-
 class Camera {
 public:
-    Camera(std::string name = "");
 
+    enum ProjectionType {
+        PERSPECTIVE,
+        ORTHOGRAPHIC
+    };
+
+    Camera(std::string name = "");
     ~Camera();
 
     /** Links the camera to the frame f (usually the root frame).*/
-    void attachTo(Frame *f);
+    void attachTo(Frame* f);
 
     //*********************** Camera position and orientation transformation**********************//
 
@@ -35,15 +31,16 @@ public:
     void lookAt(glm::vec3 pointTo, glm::vec3 center, glm::vec3 up);
 
     //*********************** Camera projection transformation **********************//
+
     /**
      * @brief Set the projection matrix of camera
      *
      * @param m the projection matrix
      */
-
-    void setProjectionMatrix(glm::mat4 &m);
+    void setProjectionMatrix(glm::mat4& m);
 
     //*********************** Define a perspective projection *********************//
+
     static glm::mat4 computePerspectiveProjection(float foV, float aspectRatio, float near, float far);
 
     /**
@@ -69,6 +66,16 @@ public:
      * @param far as far clipping plane.
      */
     void setFrustum(float left, float right, float bottom, float top, float near, float far);
+
+    /**
+     * @brief Set Orthographic projection matrix
+     */
+    void setOrthographicProjection(float left, float right, float bottom, float top, float near, float far);
+
+    /**
+     * @brief Switch projection type
+     */
+    void setProjectionType(ProjectionType type);
 
     // *********************** Members accessors ***********************//
 
@@ -139,14 +146,14 @@ public:
     /**
      * @brief Set up camera position and orientation from matrix m
      **/
-
-    void setUpFromMatrix(glm::mat4 &m);
+    void setUpFromMatrix(glm::mat4& m);
 
     /**
      * @brief Return true if camera moved since last update
      * @return true if camera moved since last update
      **/
     bool updateNeeded();
+
     /**
      * @brief Flag camera frame as having changed since last update
      * @param r for flagging frame as needing update
@@ -160,26 +167,32 @@ public:
 
     void updateBuffer();
 
-    Frame *frame() { return this->m_Frame; };
+    Frame* frame() { return this->m_Frame; };
+
+    void setProjectionMode(ProjectionType type);
+
+    ProjectionType GetTypeProjection();
 
 protected:
-    Frame *m_Frame;          ///< Camera position frame
-    Frame *projection_frame; ///< Camera projection frame
+    Frame* m_Frame;
+    Frame* projection_frame;
 
     glm::mat4 viewMatrix;
 
-    float aspectRatio; ///< pixel aspect ratio (width/height ratio of one pixel)
+    float aspectRatio;
+    float foV;
 
-    float foV; ///< field of view of the camera
-
-    float Znear; ///< distance from camera frame center to near clipping plane
-    float Zfar;  ///< distance from camera frame center to far clipping plane
+    float Znear;
+    float Zfar;
 
     std::string m_Name;
 
 private:
     bool needUpdate;
-    CameraMatrices matrices;
+
+    ProjectionType projectionType;
+
+    float orthoLeft, orthoRight, orthoBottom, orthoTop;
 };
 
 #endif

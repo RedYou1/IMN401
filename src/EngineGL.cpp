@@ -105,6 +105,85 @@ bool EngineGL::init() {
     Texture2D *bunnyTexture = new Texture2D(bunnyTexturePath);
     material->setTexture(bunnyTexture);
 
+    // Sofa
+    Node *sofa = scene->getNode("Sofa");
+
+    std::string sofaPath = ObjPath + "sofa.obj";
+    if (!std::filesystem::exists(sofaPath)) {
+        throw std::runtime_error("Missing asset: " + sofaPath);
+    }
+
+    ModelGL *sofaModel = scene->m_Models.get<ModelGL>(sofaPath);
+    if (!sofaModel) {
+        throw std::runtime_error("Failed to load model: " + sofaPath);
+    }
+
+    sofa->setModel(sofaModel);
+
+    sofa->frame()->scale(glm::vec3(5.0f));      
+    sofa->frame()->translate(glm::vec3(3.0f, 0.0f, 0.0f)); 
+
+    BaseMaterial* sofaMat = new BaseMaterial("SofaMat");
+
+    std::string sofaDiffusePath = ObjPath + "Textures/brickL.png";
+
+    if (!std::filesystem::exists(sofaDiffusePath))
+        throw std::runtime_error("Missing: " + sofaDiffusePath);
+
+    Texture2D* sofaDiffuse = new Texture2D(sofaDiffusePath);
+
+    sofa->materialProperties.useBlinnPhong = m_rasterUseBlinnPhong;
+    sofa->materialProperties.useGouraud = m_rasterUseGouraud;
+    
+    sofaMat->enableTexture(false);
+
+    sofa->setMaterial(sofaMat);
+
+    sofa->materialProperties.albedo = glm::vec3(1.0f, 0.99f, 0.01f);
+    sofa->materialProperties.diffuse = 0.8f;
+    sofa->materialProperties.specular = 0.2f;
+    sofa->materialProperties.hardness = 16.0f;
+
+    scene->getSceneNode()->adopt(sofa);
+    // End Sofa
+
+    // Plante
+    Node* plante = scene->getNode("Plante");
+
+    std::string plantePath = ObjPath + "plante.obj";
+    if (!std::filesystem::exists(plantePath)) {
+        throw std::runtime_error("Missing asset: " + plantePath);
+    }
+
+    ModelGL* planteModel = scene->m_Models.get<ModelGL>(plantePath);
+    if (!planteModel) {
+        throw std::runtime_error("Failed to load model: " + plantePath);
+    }
+
+    std::string planteTexturePath = ObjPath + "Textures/plante.jpg";
+
+    if (!std::filesystem::exists(planteTexturePath))
+        throw std::runtime_error("Missing asset: " + planteTexturePath);
+
+    Texture2D* planteTexture = new Texture2D(planteTexturePath);
+
+    plante->setModel(planteModel);
+    scene->getSceneNode()->adopt(plante);
+
+    BaseMaterial* planteMat = new BaseMaterial("PlanteMat");
+
+    plante->setMaterial(planteMat);
+    planteMat->setTexture(planteTexture);
+
+    plante->materialProperties.albedo = glm::vec3(0.1f, 0.8f, 0.2f);
+    plante->materialProperties.diffuse = 0.9f;
+    plante->materialProperties.specular = 0.1f;
+    plante->materialProperties.hardness = 8.0f;
+
+    plante->frame()->scale(glm::vec3(1.0f));
+    plante->frame()->translate(glm::vec3(-5.0f, 0.0f, 0.0f));
+    // Edn Plante
+
     bunny->setMaterial(material);
     scene->getSceneNode()->adopt(bunny);
     bunny->materialProperties.albedo = glm::vec3(0.2f, 0.35f, 1.0f);
@@ -120,18 +199,6 @@ bool EngineGL::init() {
     const glm::vec3 cameraRight = glm::normalize(glm::vec3(cameraFrame[0]));
     const glm::vec3 cameraUp = glm::normalize(glm::vec3(cameraFrame[1]));
     const glm::vec3 cameraForward = glm::normalize(-glm::vec3(cameraFrame[2]));
-
-    // Sphere behind the bunny, placed upper-right in the camera view.
-    Node *backSphere = scene->getNode("BackSphere");
-    backSphere->frame()->scale(glm::vec3(0.2f));
-    backSphere->setSphere(new Sphere(8.0f));
-    glm::vec3 sphereWorldPos = glm::vec3(bunnyWorldPos.x+15.0f, bunnyWorldPos.y + 15.0f, bunnyWorldPos.z -15.0f);
-    backSphere->frame()->translate(sphereWorldPos);
-    backSphere->materialProperties.albedo = glm::vec3(0.95f, 0.65f, 0.2f);
-    backSphere->materialProperties.diffuse = 0.75f;
-    backSphere->materialProperties.specular = 0.25f;
-    backSphere->materialProperties.hardness = 20.0f;
-    scene->getSceneNode()->adopt(backSphere);
 
     // Ground plane under the bunny.
     Node *groundPlane = scene->getNode("GroundPlane");
@@ -213,15 +280,6 @@ bool EngineGL::init() {
     lightProj->couleurSpeculaire = glm::vec3(1.0f, 0.0f, 0.0f);
     scene->lights.insert("LightProj", lightProj);
 
-    Light *sphereDirectionalLight = new Light();
-    sphereDirectionalLight->type = Light::DIRECTIONNELLE;
-    sphereDirectionalLight->direction = glm::normalize(bunnyWorldPos - sphereWorldPos);
-    sphereDirectionalLight->puissance = 0.25f;
-    sphereDirectionalLight->couleurAmbiante = glm::vec3(0.03f, 0.03f, 0.03f);
-    sphereDirectionalLight->couleurDiffuse = backSphere->materialProperties.albedo;
-    sphereDirectionalLight->couleurSpeculaire = glm::vec3(0.0f, 0.92f, 0.5f);
-    scene->lights.insert("LightFromSphere", sphereDirectionalLight);
-
     setupEngine();
     setupRaytracer();
     return (true);
@@ -236,7 +294,7 @@ float genererLesEchantillonsSSAA(int samples, std::vector<std::tuple<float, floa
 
     for (int y = 0; y < gridSize && static_cast<int>(offsets.size()) < samples; ++y) {
         for (int x = 0; x < gridSize && static_cast<int>(offsets.size()) < samples; ++x) {
-             //Done : Implémenter le SSAA dans le lanceur de rayons. Remplir le vecteur offsets avec les offsets de chaque échantillon. 
+             
             float offsetX = (x + 0.5f) / gridSize;
             float offsetY = (y + 0.5f) / gridSize;
 
@@ -247,77 +305,6 @@ float genererLesEchantillonsSSAA(int samples, std::vector<std::tuple<float, floa
     //La fonction va retourner le facteur de normalisation à appliquer à la couleur (1 / nombre d'échantillons).
     return 1.0f / static_cast<float>(offsets.size());
 }
-
-// void EngineGL::render() {
-//     glEnable(GL_DEPTH_TEST);
-//     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//     if (m_renderScene == RenderScene::Raytracer) {
-//         setBunnyAnimationPose(scene, 0.5f);
-
-//         int width = myFBO->getWidth();
-//         int height = myFBO->getHeight();
-//         glm::mat4 cameraFrame = scene->camera()->frame()->getMatrixCopy();
-//         glm::mat4 viewMatrix = scene->camera()->getViewMatrix();
-//         glm::mat4 projectionMatrix = scene->camera()->getProjectionMatrix();
-//         glm::mat4 inverseViewProjection = glm::inverse(projectionMatrix * viewMatrix);
-//         float fov = scene->camera()->getFoV();
-//         float aspect = scene->camera()->getAspectRatio();
-//         GLfloat clearColorBuffer[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-//         glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColorBuffer);
-//         const glm::vec4 clearColor(clearColorBuffer[0], clearColorBuffer[1], clearColorBuffer[2], clearColorBuffer[3]);
-
-//         if (!m_lastRaytracerParamsValid ||
-//             hasCameraChanged(cameraFrame, m_lastRaytracerCameraFrame) ||
-//             std::fabs(fov - m_lastRaytracerFoV) > 0.0001f ||
-//             std::fabs(aspect - m_lastRaytracerAspect) > 0.0001f) {
-//             m_raytracerDirty = true;
-//         }
-
-//         launchRaytracerIfNeeded(cameraFrame, inverseViewProjection, fov, aspect, width, height, clearColor);
-//         pollRaytracerResult();
-
-//         const size_t expectedImageSize = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-//         if (m_raytracerHasImage && m_raytracerImage.size() == expectedImageSize) {
-//             glTextureSubImage2D(
-//                 myFBO->getColorTexture()->getId(),
-//                 0,
-//                 0,
-//                 0,
-//                 width,
-//                 height,
-//                 GL_RGBA,
-//                 GL_UNSIGNED_BYTE,
-//                 m_raytracerImage.data());
-//         } else if (m_raytracerHasImage) {
-//             m_raytracerHasImage = false;
-//             m_raytracerDirty = true;
-//         } else {
-//             const GLfloat clearData[4] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
-//             glClearTexImage(myFBO->getColorTexture()->getId(), 0, GL_RGBA, GL_FLOAT, clearData);
-//         }
-
-//         display->apply(myFBO, nullptr);
-//     } else {
-//         for (unsigned int i = 0; i < allNodes->nodes.size(); i++) {
-//             Node *node = allNodes->nodes[i];
-//             MaterialGL *material = node->getMaterial();
-//             if (material != nullptr && material->fp != nullptr) {
-//                 Light::uniformLight(scene->lights, material->fp, material->vp);
-//             }
-//             node->render();
-//         }
-//         //Primitive Vectoriel
-    
-//             // Render all Vector Primitives (they bypass the material system)
-//             for (unsigned int i = 0; i < allNodes->nodes.size(); i++) {
-//                 VectorPrimitive* prim = dynamic_cast<VectorPrimitive*>(allNodes->nodes[i]);
-//                 if (prim) {
-//                     prim->render();
-//                 }
-//             }
-//             //End Primitive Vectoriel
-//     }
-// }
 
 void EngineGL::render()
 {
@@ -397,13 +384,13 @@ void EngineGL::render()
 std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& imageBuffer, int width, int height, int kernelSize) {
     std::vector<unsigned char> outputBuffer = imageBuffer;
 
-    //Done: implémenter un flou de post-traitement simple (moyenne des pixels) sur l'image du lanceur de rayons avant de l'afficher. Vous pouvez ajuster la taille du kernel pour un flou plus ou moins fort.
+    
     int half = kernelSize / 2;
 
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            // Done: mettre la bordure noire pour éviter les problèmes de bord lors du flou
+            
             if (x < half || x >= width - half || y < half || y >= height - half) {
                 int idx = 4 * (y * width + x);
                 outputBuffer[idx + 0] = 0;
@@ -415,7 +402,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
             glm::vec3 sum(0.0f);
             int count = 0;
     
-            //Done: calculer la moyenne des couleurs des pixels dans le voisinage défini par le kernel et assigner la couleur moyenne au pixel (x, y) dans outputBuffer
+            
             for (int ky = -half; ky <= half; ++ky) {
                 for (int kx = -half; kx <= half; ++kx) {
 
@@ -432,7 +419,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
 
             sum /= (float)count;
 
-            //Done: mettre la couleur moyenne calculée dans outputBuffer pour le pixel (x, y)
+            
             int idx = 4 * (y * width + x);
             outputBuffer[idx + 0] = (unsigned char)sum.r;
             outputBuffer[idx + 1] = (unsigned char)sum.g;
@@ -444,8 +431,7 @@ std::vector<unsigned char> appliquerFlouMoyen(const std::vector<unsigned char>& 
 }
 
 void calculerVecteurLumiere(const Light* light, const glm::vec3& intersectionPoint, glm::vec3& lightVec) {
-    //Done: calculer le vecteur de lumière (lightVec) à partir de la position de l'intersection et de la position/direction de la lumière. Normaliser le vecteur résultant.
-    // Le résultat devrait être différent pour la lumière directionnelle et la lumière ponctuelle.
+    
     if (light->type == Light::DIRECTIONNELLE) {
         lightVec = glm::normalize(-light->direction);
     }
@@ -456,9 +442,7 @@ void calculerVecteurLumiere(const Light* light, const glm::vec3& intersectionPoi
 }
 
 void EngineGL::phaseLargeRayonIntersections(const Ray& ray, IntersectionData& intersection) const {
-    //Done: intersecter le rayon avec tous les objets de la scène et remplir intersection avec les données d'intersection. Vous devriez appeler la fonction intersect de chaque objet de la scène, qui devrait mettre à jour intersection si une intersection plus proche est trouvée.
-    // Ne pas oublier de réinitialiser intersection avant de commencer les tests d'intersection pour éviter les données d'intersection précédentes d'affecter les résultats actuels.
-    // Cette section pourrait contenir une hiérarchie d'accélération pour optimiser les intersections, mais pour le TP2, il est acceptable de tester l'intersection avec tous les objets de la scène de manière brute-force.
+    
     intersection.t = FLT_MAX;
 
     for (auto node : allNodes->nodes) {
@@ -483,7 +467,7 @@ void calculerEchantillonsGrilleRayons(std::tuple<float, float> offset, float &ND
     float offsetY = std::get<1>(offset);
 
     if (vibration) {
-        //Done : implémenter la vibration pour les échantillons du SSAA. Vous pouvez utiliser std::rand() pour générer des nombres aléatoires, puis les utiliser pour décaler légèrement les coordonnées NDC de chaque échantillon.
+        
         offsetX += ((float)rand() / RAND_MAX - 0.5f) * 0.5f;
         offsetY += ((float)rand() / RAND_MAX - 0.5f) * 0.5f;
     }
@@ -494,15 +478,12 @@ void calculerEchantillonsGrilleRayons(std::tuple<float, float> offset, float &ND
 }
 
 glm::vec3 calculerDeplacementDeCollision(const IntersectionData &intersection, const Ray &ray) {
-    // Done calculer un point de départ pour les rayons d'ombre qui est légèrement décalé de la position d'intersection dans la direction de la normale de l'intersection pour éviter les problèmes de précision numérique qui pourraient faire que les rayons d'ombre intersectent à nouveau la surface à partir de laquelle ils sont lancés. 
-    // Vous pouvez utiliser une constante comme SHADOW_EPSILON pour définir la distance de ce décalage.
-    // Note: c'est une ligne de code.
+    
     return intersection.p + SHADOW_EPSILON * intersection.n;
 }
 
 glm::vec3 EngineGL::calculerBlinnPhongLancerRayons(const Light *light, const IntersectionData &intersection, const glm::vec3 &lightVec, const glm::vec3 &eyeVec) const {
-    // Done : implémenter le modèle d'éclairage de Blinn-Phong pour calculer les contributions diffuse et spéculaire de la lumière à l'intersection. 
-    // Vous devez utiliser les propriétés de la lumière (puissance, couleur diffuse, couleur spéculaire) ainsi que les propriétés du matériau à l'intersection (albedo, diffuse, specular, hardness) pour calculer la contribution de la lumière à la couleur finale.
+    
     glm::vec3 h = glm::normalize(lightVec + eyeVec);
 
     float diff = glm::max(glm::dot(intersection.n, lightVec), 0.0f);
@@ -524,11 +505,7 @@ glm::vec3 EngineGL::calculerIlluminationLancerRayons(const IntersectionData &int
     shadowRay.origin = calculerDeplacementDeCollision(intersection, shadowRay);
 
     for (int k = 0; k < scene->lights.size(); k++) {
-        //Done: implémenter la boucle d'éclairage pour calculer l'éclairage à partir de chaque lumière de la scène. Pour chaque lumière, vous devez calculer le vecteur de lumière (lightVec) et lancer un rayon d'ombre dans cette direction pour vérifier si la lumière est bloquée par un autre objet. 
-        // Si la lumière n'est pas bloquée, vous pouvez calculer les contributions diffuse et spéculaire de la lumière à l'aide du modèle de Blinn-Phong et les ajouter à samplecolour.
-        // Utiliser la fonction calculerVecteurLumiere pour obtenir le vecteur de lumière à partir de la position de l'intersection et des propriétés de la lumière.
-        // Utiliser la fonction phaseLargeRayonIntersections.
-        // Utiliser calculerBlinnPhongLancerRayons pour calculer les contributions diffuse et spéculaire de la lumière si elle n'est pas bloquée.
+      
         Light* light = scene->lights.get(k);
 
         calculerVecteurLumiere(light, intersection.p, lightVec);
@@ -556,9 +533,6 @@ void EngineGL::calculerOrientationRayon(
     const glm::vec3 &cameraPos,
     Ray &ray,
     glm::vec3 &eyeVec) const {
-    // Done: calculer l'orientation du rayon de vue à partir des coordonnées de clip (clipX, clipY) et de la matrice inverse de la projection * vue. 
-    // N'oubliez pas de normaliser la direction du rayon et de calculer le vecteur eyeVec qui pointe de l'intersection vers la caméra.
-    // Vous devez aussi remplir ray.origin.
     glm::vec4 clip = glm::vec4(clipX, clipY, -1.0f, 1.0f);
     glm::vec4 world = inverseViewProjection * clip;
     world /= world.w;
@@ -581,7 +555,6 @@ std::vector<unsigned char> EngineGL::renderRaytracerImage(const glm::mat4 &camer
     m_raytracerRowsTotal.store(width, std::memory_order_relaxed);
     m_raytracerRowsDone.store(0, std::memory_order_relaxed);
 
-    // 1. Create a vector of column indices [0, 1, 2, ..., width-1]
     std::vector<int> columns(width);
     std::iota(columns.begin(), columns.end(), 0);
 
@@ -624,8 +597,6 @@ std::vector<unsigned char> EngineGL::renderRaytracerImage(const glm::mat4 &camer
             
             int pixelIndex = 4 * (j * width + i);
 
-            // Done: assigner la couleur calculée au pixel (i, j) dans imageBuffer. N'oubliez pas de convertir la couleur de [0, 1] à [0, 255] et d'assigner une valeur de 255 pour le canal alpha.
-            // Utiliser pixelIndex pour calculer l'index correct dans le tableau 1D pour les différents canaux.
             imageBuffer[pixelIndex + 0] = (unsigned char)(colour.r * 255.0f);
             imageBuffer[pixelIndex + 1] = (unsigned char)(colour.g * 255.0f);
             imageBuffer[pixelIndex + 2] = (unsigned char)(colour.b * 255.0f);
@@ -742,6 +713,18 @@ void EngineGL::displayInterface() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Projection")) {
+            bool ortho = scene->camera()->GetTypeProjection() == Camera::ORTHOGRAPHIC;
+            
+            if (ImGui::MenuItem("Perspective", "p", !ortho)) {
+                scene->camera()->setProjectionMode(Camera::PERSPECTIVE);
+            }
+            if (ImGui::MenuItem("Orthographique", "o", ortho)) {
+                scene->camera()->setProjectionMode(Camera::ORTHOGRAPHIC);
+            }
+            ImGui::EndMenu();
+        }
+
         if (myFBO) {
             if (ImGui::BeginMenu("FBOs")) {
                 ImGui::MenuItem(myFBO->getName().c_str(), NULL, &(myFBO->show_interface));
@@ -783,6 +766,8 @@ void EngineGL::displayInterface() {
             }
             ImGui::Text("Current model: %s %s", m_rasterUseBlinnPhong ? "Blinn-Phong" : "Phong", m_rasterUseGouraud ? "(Gouraud)" : "");
         }
+
+        primitive3DManager.displayInterface();
         ImGui::End();
     }
 
@@ -979,6 +964,8 @@ EngineGL::EngineGL(int width, int height) {
     m_rasterUseGouraud = false;
     m_raytracerRowsDone.store(0, std::memory_order_relaxed);
     m_raytracerRowsTotal.store(0, std::memory_order_relaxed);
+    primitive3DManager = Primitive3DManager();
+    primitive3DManager.setOnCreateNode([this]() {refreshNodeCollector();}); // On passe la fonction pour refresh le node collect
 
     scene = Scene::getInstance();
     scene->resizeViewport(m_Width, m_Height);

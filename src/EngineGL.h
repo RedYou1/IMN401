@@ -21,6 +21,7 @@
 #include "Ray.h"
 #include "IntersectionData.h"
 #include "MirroirManager.h"
+#include <Primitive3DManager.h>
 
 class EngineGL {
 public:
@@ -73,7 +74,6 @@ protected:
 
     NodeCollector *allNodes;
 
-    // For TP 4
     FrameBufferObject *myFBO;
     Display *display;
 
@@ -119,6 +119,7 @@ private:
     bool m_raytracerTaskRunning;
     bool m_raytracerDirty;
     bool m_raytracerHasImage;
+    Primitive3DManager primitive3DManager;
     std::vector<unsigned char> m_raytracerImage;
 
     glm::mat4 m_lastRaytracerCameraFrame;
