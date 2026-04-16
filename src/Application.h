@@ -74,6 +74,7 @@ public:
     glm::vec2 oMouse, nMouse;
     glm::vec2 middle;
 
+    bool m_playing = true;
     std::chrono::steady_clock::time_point m_startTime;
     std::chrono::steady_clock::time_point m_lastTime;
     float m_secondsSinceStart;

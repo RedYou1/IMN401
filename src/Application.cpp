@@ -180,6 +180,25 @@ void Application::displayOverlay(bool display) {
     ImGui::End();
     //End outils de dessin
 
+    ImGui::Separator();
+    // Transformation Interactives
+    if (ImGui::Begin("Controle de l'animation"))
+    {
+        if(ImGui::Button("Play")){
+            m_startTime = m_startTime + (std::chrono::steady_clock::now() - m_lastTime);
+            m_lastTime = std::chrono::steady_clock::now();
+            m_playing = true;
+        }
+        if(ImGui::Button("Pause")){
+            m_playing = false;
+        }
+        if(ImGui::Button("Reset")){
+            m_startTime = std::chrono::steady_clock::now();
+            m_lastTime = std::chrono::steady_clock::now();
+            m_secondsSinceStart = 0.0f;
+        }
+    }
+    ImGui::End();
 
     ImGui::Separator();
     // Transformation Interactives
@@ -637,6 +656,11 @@ void Application::animate(const float elapsedTime) {
 }
 
 void Application::updateTime() {
+    if(!m_playing) {
+        m_elapsedSeconds = 0.f;
+        m_elapsedMillis = 0.f;
+        return;
+    }
     const auto now = std::chrono::steady_clock::now();
     m_elapsedSeconds = std::chrono::duration<float>(now - m_lastTime).count();
     m_elapsedMillis = std::chrono::duration<float, std::milli>(now - m_lastTime).count();
