@@ -29,14 +29,12 @@ void MirroirManager::renderMirroirView(void* engineptr, float secondsSinceStart)
     // ---- Save camera state ----
     glm::mat4 savedViewMatrix = camera->getViewMatrix();
     glm::mat4 savedUpMatrix = camera->frame()->getMatrixCopy();
-    glm::mat4 savedProjMatrix = camera->getProjectionMatrix();
 
     glm::mat4 mirrorUpMatrix = m_cameraNode->frame()->getMatrixCopy();
-    glm::mat4 mirrorWorld = glm::inverse(mirrorUpMatrix);
 
     // --- extraire position caméra ---
-    glm::vec3 mirrorPos = glm::vec3(mirrorWorld[3]);
-    glm::vec3 mirrorForward = -glm::vec3(mirrorWorld[2]);
+    glm::vec3 mirrorPos = glm::vec3(mirrorUpMatrix[3]);
+    glm::vec3 mirrorForward = -glm::vec3(mirrorUpMatrix[2]);
 
     // --- reconstruire view matrix ---
     glm::mat4 mirroredView = glm::lookAt(
@@ -46,9 +44,12 @@ void MirroirManager::renderMirroirView(void* engineptr, float secondsSinceStart)
     );
 
     m_camera->setUpFromMatrix(glm::inverse(mirroredView));
-    m_camera->setProjectionMatrix(savedProjMatrix);
+    m_camera->setProjectionMatrix(camera->getProjectionMatrix());
     m_camera->setUpdate(true);
     scene->setCamera(m_camera);
+    
+    MaterialGL* camMat = m_cameraNode->getMaterial();
+    m_cameraNode->setMaterial(nullptr);
     
     // ---- Render scene into FBO ----
     // Reflection flips handedness — reverse winding so culling stays correct
@@ -62,8 +63,6 @@ void MirroirManager::renderMirroirView(void* engineptr, float secondsSinceStart)
     glFrontFace(GL_CCW);
 
     // ---- Restore camera ----
-    camera->setUpFromMatrix(savedUpMatrix);
-    camera->setProjectionMatrix(savedProjMatrix);
-    camera->setUpdate(true);
     scene->setCamera(camera);
+    m_cameraNode->setMaterial(camMat);
 }

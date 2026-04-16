@@ -19,6 +19,7 @@
 #include <numeric>
 #include <tuple>
 #include "MirroirManager.h"
+#include "CubePrimitive.h"
 
 #define SHADOW_EPSILON 1e-5f
 
@@ -210,30 +211,21 @@ bool EngineGL::init() {
     groundPlane->materialProperties.hardness = 8.0f;
     scene->getSceneNode()->adopt(groundPlane);
 
-    // Ajout du miroir derrière le lapin en angle
     Node *cameraNode = scene->getNode("CameraNode");
-    // Plan incliné (miroir) derrière le bunny
     glm::vec3 cameraNormal2 = glm::normalize(glm::vec3(1.0f, 0.0f, -0.75f));
     glm::vec3 cameraPos2 = bunnyWorldPos + glm::vec3(0.0f, 0.0f, 5.f);
     cameraNode->setPlane(new Plane(cameraNormal2, glm::vec3(0.f)));
     cameraNode->frame()->rotate(glm::vec3(0.f, 1.f, 0.f), glm::pi<float>() / 2.f);
     cameraNode->frame()->translate(cameraPos2);
     cameraNode->frame()->scale(glm::vec3(1.0f, 1.0f, 1.0f));
-    std::string planePath = ObjPath + "Quad.obj";
-    if (!std::filesystem::exists(planePath)) {
-        throw std::runtime_error("Missing asset: " + planePath);
-    }
-    ModelGL *planeModel = scene->m_Models.get<ModelGL>(planePath);
-    if (!planeModel) {
-        throw std::runtime_error("Failed to load model: " + planePath);
-    }
-    cameraNode->setModel(planeModel);
-    cameraNode->setMaterial(new BaseMaterial("CameraMat"));
-    cameraNode->materialProperties.albedo = glm::vec3(1.f);
+    BaseMaterial* camMat = new BaseMaterial("CameraMat");
+    camMat->enableTexture(false);
+    cameraNode->setMaterial(camMat);
+    cameraNode->setModel(new CubePrimitive());
+    cameraNode->materialProperties.albedo = glm::vec3(0.5f, 0.1f, 0.1f);
     cameraNode->materialProperties.diffuse = 0.9f;
     cameraNode->materialProperties.specular = 0.1f;
     cameraNode->materialProperties.hardness = 8.0f;
-    // Le matériel sera géré par MirroirManager
     scene->getSceneNode()->adopt(cameraNode);
 
     Node *mirroirNode = scene->getNode("MirrorMirroir");
@@ -242,11 +234,11 @@ bool EngineGL::init() {
     glm::vec3 mirroirPos = bunnyWorldPos + glm::vec3(0.0f, 2.0f, -12.0f); // Derrière le lapin
     mirroirNode->setPlane(new Plane(mirroirNormal, mirroirPos));
     mirroirNode->frame()->scale(glm::vec3(4.0f, 4.0f, 1.0f));
-    planePath = ObjPath + "Quad.obj";
+    std::string planePath = ObjPath + "Quad.obj";
     if (!std::filesystem::exists(planePath)) {
         throw std::runtime_error("Missing asset: " + planePath);
     }
-    planeModel = scene->m_Models.get<ModelGL>(planePath);
+    ModelGL* planeModel = scene->m_Models.get<ModelGL>(planePath);
     if (!planeModel) {
         throw std::runtime_error("Failed to load model: " + planePath);
     }
