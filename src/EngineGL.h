@@ -20,6 +20,7 @@
 #include "Light.h"
 #include "Ray.h"
 #include "IntersectionData.h"
+#include "MirroirManager.h"
 
 class EngineGL {
 public:
@@ -61,6 +62,9 @@ public:
     void phaseLargeRayonIntersections(const Ray& ray, IntersectionData& intersection) const;
 
     void refreshNodeCollector();
+
+    Scene* getScene(){return scene;}
+    MirroirManager* getMirroirManager(){return m_mirroirManager;}
 protected:
     int m_Width;
     int m_Height;
@@ -131,5 +135,8 @@ private:
 
     mutable std::atomic<int> m_raytracerRowsDone;
     mutable std::atomic<int> m_raytracerRowsTotal;
+    
+    // Ajout pour la gestion du miroir
+    MirroirManager* m_mirroirManager = nullptr;
 };
 #endif

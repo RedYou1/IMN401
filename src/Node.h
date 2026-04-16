@@ -70,6 +70,9 @@ protected:
     Frame *m_Frame;
     std::string m_Name;
     Node *m_Father;
+
+public:
+    Node* getFather() const { return m_Father; }
 };
 
 #endif

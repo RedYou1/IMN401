@@ -19,6 +19,7 @@ class Scene : public Singleton<Scene> {
     public:
     Frame *frame();
     Camera *camera();
+    void setCamera(Camera *camera);
     
     Node *getRoot();
     Node *getNode(std::string name);

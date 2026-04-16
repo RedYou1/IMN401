@@ -1,4 +1,3 @@
-
 #include <chrono>
 #include <cmath>
 #include <glad/glad.h>
@@ -30,6 +29,7 @@
 #include "Materials/BaseMaterial/BaseMaterial.h"   
 #include "Texture2D.h"
 #include "Plane.h"
+#include "MirroirManager.h"
 //End Importation d'image
 
 bool goForward = false;
@@ -780,11 +780,16 @@ void Application::mainLoop() {
         ImGui_ImplGlfwGL3_NewFrame();
         displayOverlay(m_display_interface);
 
-        // Rendering
-        m_engine->render();
+        // Rendu du miroir avant la scène principale
+        if (m_engine->getMirroirManager()) {
+            m_engine->getMirroirManager()->renderMirroirView(m_engine, m_secondsSinceStart);
+        }
 
         // update
         animate(m_secondsSinceStart);
+
+        // Rendering
+        m_engine->render();
 
         if (m_display_interface)
             ImGui::Render();

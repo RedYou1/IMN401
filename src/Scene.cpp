@@ -31,6 +31,10 @@ Camera *Scene::camera() {
     return current_Camera;
 }
 
+void Scene::setCamera(Camera *camera) {
+    current_Camera = camera;
+}
+
 void Scene::nextManipulatedNode() {
     current_ManipulatedNode->isManipulated = false;
     current_ManipulatedNode = m_Nodes.nextObject(current_ManipulatedNode->getName());
