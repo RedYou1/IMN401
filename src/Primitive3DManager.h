@@ -25,6 +25,7 @@ private:
     float m_color[3] = { 0.8f, 0.8f, 0.8f };
 
 private:
+    void applyColorToSelected();
     Node* createPrimitiveNode();
     int primcount = 1;
 

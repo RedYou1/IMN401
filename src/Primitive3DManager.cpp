@@ -10,10 +10,8 @@ void Primitive3DManager::displayInterface()
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 displaySize = io.DisplaySize;
 
-    // taille initiale plus grande
-    ImVec2 windowSize(350.0f, 250.0f);
+    ImVec2 windowSize(350.0f, 300.0f);
 
-    // position en bas à droite
     ImVec2 windowPos(
         displaySize.x - windowSize.x - 10.0f,
         displaySize.y - windowSize.y - 10.0f
@@ -37,7 +35,52 @@ void Primitive3DManager::displayInterface()
     ImGui::Separator();
 
     ImGui::Text("Color");
-    ImGui::ColorEdit3("##color", m_color);
+
+    // --- état persistant ---
+    static int mode = 0; // 0 = RGB, 1 = HSB
+    static float hsv[3] = { 0.0f, 0.0f, 0.0f };
+    static bool hsvInitialized = false;
+
+    // initialiser HSV une seule fois (ou si besoin au démarrage)
+    if (!hsvInitialized)
+    {
+        ImGui::ColorConvertRGBtoHSV(
+            m_color[0], m_color[1], m_color[2],
+            hsv[0], hsv[1], hsv[2]
+        );
+        hsvInitialized = true;
+    }
+
+    // choix du mode
+    ImGui::Combo("Mode", &mode, "RGB\0HSB\0");
+
+    // affichage selon mode
+    if (mode == 0)
+    {
+        if (ImGui::ColorEdit3("##color", m_color))
+        {
+            // sync RGB -> HSV
+            ImGui::ColorConvertRGBtoHSV(
+                m_color[0], m_color[1], m_color[2],
+                hsv[0], hsv[1], hsv[2]
+            );
+
+            applyColorToSelected();
+        }
+    }
+    else
+    {
+        if (ImGui::SliderFloat3("##hsb", hsv, 0.0f, 1.0f))
+        {
+            // sync HSV -> RGB
+            ImGui::ColorConvertHSVtoRGB(
+                hsv[0], hsv[1], hsv[2],
+                m_color[0], m_color[1], m_color[2]
+            );
+
+            applyColorToSelected();
+        }
+    }
 
     ImGui::Separator();
 
@@ -78,4 +121,20 @@ Node* Primitive3DManager::createPrimitiveNode()
     }
 
     return node;
+}
+
+void Primitive3DManager::applyColorToSelected()
+{
+    Node* node = Scene::getInstance()->getManipulatedNode();
+    if (!node)
+        return;
+
+    const std::string& name = node->getName();
+
+    if (name.rfind("Primitive", 0) == 0) // commence par "Primitive"
+    {
+        node->materialProperties.albedo = glm::vec3(
+            m_color[0], m_color[1], m_color[2]
+        );
+    }
 }
