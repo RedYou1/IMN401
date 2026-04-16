@@ -14,14 +14,15 @@ public:
 
     void renderMirroirView(void* engine, float secondsSinceStart);
 
-    FrameBufferObject* getFBO() { return m_fbo; }
     MirroirMaterial* getMaterial() { return m_material; }
 
 private:
+    bool m_current_fbo;
     Camera* m_camera;
     Node* m_mirroirNode;
     Node* m_cameraNode;
-    FrameBufferObject* m_fbo;
+    FrameBufferObject* m_fbo1;
+    FrameBufferObject* m_fbo2;
     MirroirMaterial* m_material;
     glm::mat4 m_lastViewMatrix;
     glm::mat4 m_lastProjMatrix;

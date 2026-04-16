@@ -9,14 +9,15 @@ MirroirManager::MirroirManager(Node* cameraNode, Node* mirroirNode, int width, i
     : m_cameraNode(cameraNode), m_mirroirNode(mirroirNode)
 {
     m_camera = new Camera("mirror camera");
-    m_fbo = new FrameBufferObject("MirroirFBO", width, height);
+    m_fbo1 = new FrameBufferObject("MirroirFBO1", width, height);
+    m_fbo2 = new FrameBufferObject("MirroirFBO2", width, height);
     m_material = new MirroirMaterial("IMN401-MatMirroir");
-    m_material->setMirroirTexture(m_fbo->getColorTexture());
     if (m_mirroirNode) m_mirroirNode->setMaterial(m_material);
 }
 
 MirroirManager::~MirroirManager() {
-    delete m_fbo;
+    delete m_fbo1;
+    delete m_fbo2;
     delete m_material;
 }
 
@@ -51,16 +52,26 @@ void MirroirManager::renderMirroirView(void* engineptr, float secondsSinceStart)
     MaterialGL* camMat = m_cameraNode->getMaterial();
     m_cameraNode->setMaterial(nullptr);
     
+    FrameBufferObject* fbo;
+    if(m_current_fbo){
+        fbo = m_fbo1;
+    }else{
+        fbo = m_fbo2;
+    }
+    m_current_fbo = !m_current_fbo;
+
     // ---- Render scene into FBO ----
     // Reflection flips handedness — reverse winding so culling stays correct
     glFrontFace(GL_CW);
     m_material->rendering = false;
-    m_fbo->enable();
+    fbo->enable();
     engine->animate(secondsSinceStart);
     engine->render();
-    m_fbo->disable();
+    fbo->disable();
     m_material->rendering = true;
     glFrontFace(GL_CCW);
+
+    m_material->setMirroirTexture(fbo->getColorTexture());
 
     // ---- Restore camera ----
     scene->setCamera(camera);

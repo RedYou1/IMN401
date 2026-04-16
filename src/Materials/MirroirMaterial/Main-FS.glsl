@@ -4,5 +4,5 @@ uniform sampler2D mirroirTextureSampler;
 uniform float mirrorRendering;
 
 void main() {
-    Color = 0.9 * texture(mirroirTextureSampler, vec2(-textureCoords.x, textureCoords.y));
+    Color = 0.9 * texture(mirroirTextureSampler, textureCoords);
 }
