@@ -13,8 +13,8 @@ Camera::Camera(std::string name) {
 
     orthoLeft = -7.0f;
     orthoRight = 7.0f;
-    orthoBottom = -7.0f;
-    orthoTop = 7.0f;
+    orthoBottom = -5.0f;
+    orthoTop = 5.0f;
 
     m_Frame = new Frame();
     m_Frame->setAsCameraFrame(true);

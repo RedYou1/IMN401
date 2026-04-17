@@ -670,10 +670,10 @@ void EngineGL::displayInterface() {
         if (ImGui::BeginMenu("Projection")) {
             bool ortho = scene->camera()->GetTypeProjection() == Camera::ORTHOGRAPHIC;
             
-            if (ImGui::MenuItem("Perspective", "p", !ortho)) {
+            if (ImGui::MenuItem("Perspective", NULL, !ortho)) {
                 scene->camera()->setProjectionMode(Camera::PERSPECTIVE);
             }
-            if (ImGui::MenuItem("Orthographique", "o", ortho)) {
+            if (ImGui::MenuItem("Orthographique", NULL, ortho)) {
                 scene->camera()->setProjectionMode(Camera::ORTHOGRAPHIC);
             }
             ImGui::EndMenu();
