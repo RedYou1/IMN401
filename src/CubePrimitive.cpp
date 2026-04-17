@@ -22,7 +22,7 @@ void CubePrimitive::generateCube()
 
     auto addFace = [&](glm::vec3 a, glm::vec3 b, glm::vec3 c)
         {
-            int start = v.size();
+            int start = (int) v.size();
 
             v.push_back(a);
             v.push_back(b);
