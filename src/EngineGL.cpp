@@ -211,7 +211,7 @@ bool EngineGL::init() {
     groundPlane->materialProperties.hardness = 8.0f;
     scene->getSceneNode()->adopt(groundPlane);
 
-    Node *cameraNode = scene->getNode("CameraNode");
+    Node *cameraNode = scene->getNode("_CameraNode");
     glm::vec3 cameraNormal2 = glm::normalize(glm::vec3(1.0f, 0.0f, -0.75f));
     glm::vec3 cameraPos2 = bunnyWorldPos + glm::vec3(0.0f, 0.0f, 5.f);
     cameraNode->setPlane(new Plane(cameraNormal2, glm::vec3(0.f)));
@@ -226,7 +226,7 @@ bool EngineGL::init() {
     cameraNode->materialProperties.hardness = 8.0f;
     scene->getSceneNode()->adopt(cameraNode);
 
-    Node *mirroirNode = scene->getNode("MirrorMirroir");
+    Node *mirroirNode = scene->getNode("_TVNode");
     // Plan incliné (miroir) derrière le bunny
     glm::vec3 mirroirNormal = glm::normalize(glm::vec3(0.3f, 0.0f, 1.0f));
     glm::vec3 mirroirPos = bunnyWorldPos + glm::vec3(0.0f, -.25f, -5.0f);

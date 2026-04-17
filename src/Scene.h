@@ -46,7 +46,7 @@ class Scene : public Singleton<Scene> {
     void nextManipulatedNode();
     void manipulateNode(std::string name);
     
-    void displayInterface();
+    void displayInterface(void* engine);
     
     Node *getSceneNode();
     Node *getManipulatedNode();

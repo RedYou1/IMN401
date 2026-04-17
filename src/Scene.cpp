@@ -1,11 +1,12 @@
 #include "Scene.h"
 #include "EffectGL.h"
+#include "EngineGL.h"
 
 Scene::Scene() {
 
     LOG_TRACE << "Creating Scene" << std::endl;
     // Get the root Node
-    m_Root = m_Nodes.get("Root");
+    m_Root = m_Nodes.get("_Root");
 
     // Create a projective default camera with standard parameter and place it in the scene
 
@@ -16,14 +17,14 @@ Scene::Scene() {
     current_Camera = camera;
 
     // Create a Scene Node and link it to root node
-    m_Scene = m_Nodes.get("Scene");
+    m_Scene = m_Nodes.get("_Scene");
     m_Root->adopt(m_Scene);
 
     current_ManipulatedNode = m_Scene;
 }
 
 Scene::~Scene() {
-    // m_Nodes.release("Root");
+    // m_Nodes.release("_Root");
 }
 
 
@@ -95,12 +96,36 @@ void Scene::resizeViewport(int w, int h) {
 Node* Scene::findNode(std::string name) {
     return m_Nodes.find(name);
 }
-void Scene::displayInterface() {
+void Scene::displayInterface(void* engine) {
+    if (ImGui::Begin("Manipulated Nodes")) {
+        if(current_ManipulatedNode != nullptr && current_ManipulatedNode->getName().at(0) != '_' && ImGui::Button("Delete Selected")) {
+            getSceneNode()->disown(current_ManipulatedNode);
+            ((EngineGL*)engine)->refreshNodeCollector();
+            releaseNode(current_ManipulatedNode);
+            current_ManipulatedNode->setDelete();
+            current_ManipulatedNode = nullptr;
+        }
+
+        for (int i = 0; i < m_Nodes.size(); i++) {
+            Node *n = m_Nodes.get(i);
+            if(n->deleted()) continue;
+
+            if (ImGui::RadioButton(n->getName().c_str(), current_ManipulatedNode == n)) {
+                manipulateNode(n->getName());
+            }
+        }
+
+        ImGui::End();
+    }
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Scene Information")) {
             if (ImGui::BeginMenu("Nodes")) {
-                for (int i = 0; i < m_Nodes.size(); i++)
-                    ImGui::MenuItem(m_Nodes.get(i)->getName().c_str(), NULL, &(m_Nodes.get(i)->show_interface));
+                for (int i = 0; i < m_Nodes.size(); i++){
+                    Node* node = m_Nodes.get(i);
+                    if(node->deleted()) continue;
+                    ImGui::MenuItem(node->getName().c_str(), NULL, &(node->show_interface));
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Effects")) {
@@ -112,9 +137,12 @@ void Scene::displayInterface() {
             ImGui::EndMenu();
         }
 
-        for (int i = 0; i < m_Nodes.size(); i++)
-            if (m_Nodes.get(i)->show_interface)
-                m_Nodes.get(i)->displayInterface();
+        for (int i = 0; i < m_Nodes.size(); i++){
+            Node* node = m_Nodes.get(i);
+            if(node->deleted()) continue;
+            if (node->show_interface)
+                node->displayInterface();
+        }
 
         for (int i = 0; i < m_Effects.size(); i++)
             if (m_Effects.get(i)->show_interface)
@@ -122,19 +150,4 @@ void Scene::displayInterface() {
 
         ImGui::EndMainMenuBar();
     }
-
-    if (!ImGui::Begin("Manipulated Nodes")) {
-        ImGui::End();
-        return;
-    }
-
-    for (int i = 0; i < m_Nodes.size(); i++) {
-        Node *n = m_Nodes.get(i);
-
-        if (ImGui::RadioButton(n->getName().c_str(), current_ManipulatedNode == n)) {
-            manipulateNode(n->getName());
-        }
-    }
-
-    ImGui::End();
 }

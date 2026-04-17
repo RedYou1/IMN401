@@ -232,7 +232,8 @@ void Application::displayOverlay(bool display) {
 
         ImGui::Separator();
         
-        ImGui::SliderFloat(": Metalic", &selected->materialProperties.shininess, 0.f, 10.f, "%.3f", 2.f);
+        if(selected)
+            ImGui::SliderFloat(": Metalic", &selected->materialProperties.shininess, 0.f, 10.f, "%.3f", 2.f);
 
         ImGui::Separator();
     }
@@ -264,7 +265,7 @@ void Application::displayOverlay(bool display) {
         ImGui::EndMainMenuBar();
     }
 
-    m_scene->displayInterface();
+    m_scene->displayInterface(m_engine);
     m_engine->displayInterface();
 
     if (Logger::getInstance()->show_interface)

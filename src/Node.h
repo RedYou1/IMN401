@@ -62,6 +62,9 @@ public:
     bool show_interface;
     virtual void displayInterface();
 
+    bool deleted() {return m_deleted;}
+    void setDelete() {m_deleted = true;}
+
 protected:
     ModelGL *m_Model;
     Sphere *m_Sphere;
@@ -70,6 +73,7 @@ protected:
     Frame *m_Frame;
     std::string m_Name;
     Node *m_Father;
+    bool m_deleted = false;
 
 public:
     Node* getFather() const { return m_Father; }

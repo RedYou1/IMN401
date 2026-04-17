@@ -200,7 +200,7 @@ void Node::displayInterface() {
         if (isManipulated)
             Scene::getInstance()->manipulateNode(m_Name.c_str());
         else
-            Scene::getInstance()->manipulateNode("Scene");
+            Scene::getInstance()->manipulateNode("_Scene");
     }
 
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.06f, 0.86f, 0.05f, 0.45f));
